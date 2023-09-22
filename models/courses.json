@@ -1,0 +1,15 @@
+{
+    "e123": {
+        "data": {
+            "name": "English",
+            "course_code": "e123",
+            "instructor_id": "12fd",
+            "prerequisites": [
+                "er",
+                "erf"
+            ]
+        },
+        "uid": "e123",
+        "timestamp": "2023-09-23T00:49:39.885276"
+    }
+}
