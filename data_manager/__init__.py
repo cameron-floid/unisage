@@ -16,7 +16,7 @@ class DataManager:
         """
         self.data_directory = data_directory
 
-    def write_to_file(self, filename, data):
+    def write_to_file(self, filename, data) -> bool:
         """
         Write data to a JSON file.
 
