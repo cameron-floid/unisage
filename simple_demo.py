@@ -1,20 +1,34 @@
+import os
 import uuid
 import json
 import hashlib
+from pprint import pprint
 
 
 class DataManager:
     @staticmethod
     def save_record(filename, record):
-        with open(filename, 'a') as file:
+
+        current_directory = os.path.dirname(__file__)
+        f_name = os.path.join(current_directory, filename)
+
+        # Create the directory if it doesn't exist
+        os.makedirs(os.path.dirname(f_name), exist_ok=True)
+
+        with open(f_name, 'a') as file:
             json.dump(record, file)
             file.write('\n')
 
     @staticmethod
     def get_records(filename):
+
+        current_directory = os.path.dirname(__file__)
+        f_name = os.path.join(current_directory, filename)
+
         records = []
+
         try:
-            with open(filename, 'r') as file:
+            with open(f_name, 'r') as file:
                 for line in file:
                     record = json.loads(line)
                     records.append(record)
@@ -29,7 +43,7 @@ class Model:
 
     def save(self):
         data_manager = DataManager()
-        data_manager.save_record(self.__class__.__name__.lower() + '.json', self.__dict__)
+        data_manager.save_record("data/demo/" + self.__class__.__name__.lower() + '.json', self.__dict__)
 
     @classmethod
     def get(cls, uid):
@@ -41,7 +55,7 @@ class Model:
 
     @classmethod
     def get_all(cls):
-        filename = cls.__name__.lower() + '.json'
+        filename = "data/demo/" + cls.__name__.lower() + '.json'
         data_manager = DataManager()
         return data_manager.get_records(filename)
 
@@ -52,40 +66,42 @@ class Model:
         return instance
 
 
-class Person(Model):
-    def __init__(self, name, email, password):
+class User(Model):
+    def __init__(self, uid, name, email, password, salt):
         super().__init__()
+        self.uid = uid  # Assign the uid passed as a parameter
         self.name = name
         self.email = email
-        self.password_hash = self._hash_password(password)
+        self.salt = salt  # Assign the salt passed as a parameter
+        self.password_hash = self._hash_password(password, self.salt)
 
     @staticmethod
-    def _hash_password(password):
-        # Hash the password using a secure hash algorithm (e.g., SHA-256)
-        salt = uuid.uuid4().hex
+    def _hash_password(password, salt):
+        # Hash the password using a secure hash algorithm (e.g., SHA-256) with the salt
         hashed_password = hashlib.sha256(salt.encode() + password.encode()).hexdigest()
         return hashed_password
 
-    def verify_password(self, password):
+    @staticmethod
+    def verify_password(password: str, salt: str, password_hash: str):
         # Verify if the provided password matches the stored hash
-        return self.password_hash == self._hash_password(password)
+        return User._hash_password(password, salt) == password_hash
 
 
-class Student(Person):
+class Student(User):
     def __init__(self, name, email, password, student_id, program):
         super().__init__(name, email, password)
         self.student_id = student_id
         self.program = program
 
 
-class Professor(Person):
+class Professor(User):
     def __init__(self, name, email, password, employee_id, department):
         super().__init__(name, email, password)
         self.employee_id = employee_id
         self.department = department
 
 
-class HostelManager(Person):
+class HostelManager(User):
     def __init__(self, name, email, password, hostel_name):
         super().__init__(name, email, password)
         self.hostel_name = hostel_name
@@ -109,7 +125,7 @@ class Uni:
 
     @staticmethod
     def _user_exists(email):
-        users = Person.get_all()
+        users = User.get_all()
         for user in users:
             if user['email'] == email:
                 return True
@@ -117,17 +133,21 @@ class Uni:
 
     def authenticate(self, email, password):
         # Authenticate the user based on email and password
-        users = Person.get_all()
+        users = User.get_all()
         for user in users:
-            if user['email'] == email and user['password_hash'] == Person._hash_password(password):
-                self.current_user = Person.get(user['uid'])
+            if user['email'] == email and User.verify_password(
+                password=password,
+                salt=user["salt"],
+                password_hash=user["password_hash"]
+            ):
+                self.current_user = User(user['uid'], user['name'], user['email'], '', user['salt'])
                 return True
         return False
 
     def signup(self, name, email, password):
-        # Create a new account (Person) with the provided information
+        # Create a new account (User) with the provided information
         if not self._user_exists(email):
-            Person.create(name=name, email=email, password=password)
+            User.create(name=name, email=email, password=password)
             return True
         return False
 
@@ -166,7 +186,7 @@ class CMDUI:
         self.uni = Uni()
 
     def run(self):
-        while True:
+        while True and self.uni.current_user is None:
             print("1. Sign In")
             print("2. Sign Up")
             print("3. Quit")
@@ -192,6 +212,9 @@ class CMDUI:
                     print("An account with this email already exists.")
             elif choice == '3':
                 break
+
+        if self.uni.current_user is not None:
+            self.handle_authenticated_user()
 
     def handle_authenticated_user(self):
         while True:
@@ -242,3 +265,4 @@ class CMDUI:
 if __name__ == "__main__":
     cmd_ui = CMDUI()
     cmd_ui.run()
+
