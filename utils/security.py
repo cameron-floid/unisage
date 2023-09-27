@@ -36,6 +36,7 @@ class SecurityUtils:
             salt = bcrypt.gensalt()
             hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
             return hashed_password.decode('utf-8')
+
         except Exception as e:
             # Handle exceptions, if any
             print(f"Error hashing password: {str(e)}")

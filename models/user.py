@@ -1,5 +1,6 @@
-from utils import SecurityUtils
+from datetime import datetime
 from models.model import MODEL
+from utils import SecurityUtils
 from error_handler.errors import RecordNotFound, WrongPassword
 
 
@@ -7,12 +8,12 @@ class User(MODEL):
 
     DATA_DIRECTORY = "data/iam"
 
-    def __init__(self, user_data: dict):
+    def __init__(self, name: str, email: str, dob: datetime):
         super().__init__(data_directory="users")
 
-        self.name = None
-        self.dob = None
-        self.email = None
+        self.dob = dob
+        self.name = name
+        self.email = email
 
     @staticmethod
     def get_user(email: str, password: str):
@@ -31,7 +32,7 @@ class User(MODEL):
             raise WrongPassword(f"Wrong password provided.")
 
     @staticmethod
-    def create_user(user_data: dict):
+    def create_user(user_data: dict) -> bool:
         """
         Create a new user record
         :return: Boolean

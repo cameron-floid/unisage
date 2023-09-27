@@ -13,7 +13,7 @@ class MODEL:
         Intermediate interaction between models and data_manager
         :param data_directory:
         """
-        self.uid = str(uuid.uuid4())  # Generate a random UUID for every model record
+        # self.uid = str(uuid.uuid4())  # Generate a random UUID for every model record
         self.data_directory = data_directory
 
     @staticmethod
@@ -35,6 +35,7 @@ class MODEL:
 
             # Create a dictionary to store object data along with metadata
             record_data = {
+                "uid": str(uuid.uuid4()),
                 "timestamp": datetime.now().isoformat(),
             }
 

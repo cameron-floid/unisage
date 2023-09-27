@@ -32,7 +32,7 @@ class Course:
             "instructor_id": self.instructor_id,
             "prerequisites": self.prerequisites,
         }
-        return MODEL(data_directory="data/models").save(data, "courses", self.course_code)
+        return MODEL(data_directory="data/models").save(collection="courses", data=data)
 
     @staticmethod
     def get(course_code: str):

@@ -1,58 +1,82 @@
 from datetime import datetime
 from models.user import User
+from error_handler import RecordNotFound, WrongPassword, AuthenticationError
 
 
 class Student(User):
     def __init__(
             self,
             name: str,
+            email: str,
             dob: datetime,
-            student_class: str,
+            courses: list,
+            major: str,
             enrollment_year: datetime,
             graduation_year: datetime,
-            courses: list = None
     ):
 
-        super().__init__(name=name, dob=dob)
-
-        if courses is None:
-            courses = []
+        super().__init__(name=name, email=email, dob=dob)
 
         self.courses = courses
         self.student_class = student_class
         self.enrollment_year = enrollment_year
         self.graduation_year = graduation_year
 
-    def save_user(self, child_data: dict):
+    @staticmethod
+    def create_student(
+            name: str,
+            email: str,
+            dob: datetime,
+            student_class: str,
+            enrollment_year: datetime,
+            graduation_year: datetime,
+            password: str,
+            courses: list = None
+    ) -> bool:
+
+        if courses is None:
+            courses = []
 
         data = {
-            "courses": self.courses,
-            "class": self.student_class,
-            "enrollment_year": self.enrollment_year,
-            "graduation_year": self.graduation_year
+            "name": name,
+            "email": email,
+            "dob": dob,
+            "student_class": student_class,
+            "enrollment_year": enrollment_year,
+            "graduation_year": graduation_year,
+            "courses": courses,
+            "password": password
         }
 
-        for key in child_data:
-            data[key] = child_data[key]
-
-        return super().save_user(child_data=data)
+        return super().create_user(user_data=data)
 
     @staticmethod
-    def get_student(student_id: str):
+    def get_student(email: str, password: str):
         """
-        Gets student_data from the file system through the Person class and the MODEL class and the data_manager
-        :param sid:
-        :return: Student
+        Get User object when provided email and password
+        :param email:
+        :param password:
+        :return:
         """
-        student_data = super().get(collection="users", uid=student_id)
-        if student_data:
+
+        try:
+            student_data = super().get_user(email=email, password=password)
+
             return Student(
-                sid=student_data["id"],
+                uid=student_data["uid"],
                 name=student_data["name"],
-                courses=student_data["courses"],
+                email=student_data["email"],
+                dob=student_data["dob"],
+                student_class=student_data["student_class"],
                 enrollment_year=student_data["enrollment_year"],
-                graduation_year=student_data["graduation_year"]
+                graduation_year=student_data["graduation_year"],
+                courses=student_data["courses"]
             )
 
-        else:
-            return None
+        except RecordNotFound:
+            # print(f"Invalid User Email: {email}")  # log error
+            raise AuthenticationError()
+
+        except WrongPassword:
+            # print(f"Invalid User Password for: {email}")  # log error
+            raise AuthenticationError()

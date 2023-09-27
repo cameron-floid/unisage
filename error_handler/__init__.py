@@ -1,1 +1,1 @@
-from error_handler.errors import RecordNotFound
+from error_handler.errors import RecordNotFound, WrongPassword, AuthenticationError
