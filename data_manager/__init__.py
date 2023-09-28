@@ -3,54 +3,35 @@ import json
 
 
 class DataManager:
-    """
-    DataManager class for reading and writing data to the file system.
-    """
+    @staticmethod
+    def save_record(filename, record):
+        # Get the absolute path to the project directory
+        project_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
-    def __init__(self, data_directory):
-        """
-        Initialize the DataManager with a specified data directory.
+        # Create the data directory if it doesn't exist
+        data_dir = os.path.join(project_dir, 'data')
+        os.makedirs(data_dir, exist_ok=True)
 
-        Args:
-            data_directory (str): The directory where data will be stored.
-        """
-        self.data_directory = data_directory
+        file_path = os.path.join(data_dir, filename)
 
-    def write_to_file(self, filename, data) -> bool:
-        """
-        Write data to a JSON file.
+        with open(file_path, 'a') as file:
+            json.dump(record, file)
+            file.write('\n')
 
-        Args:
-            filename (str): The name of the JSON file.
-            data (dict): The data to be written as a dictionary.
+    @staticmethod
+    def get_records(filename):
+        # Get the absolute path to the project directory
+        project_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+        data_dir = os.path.join(project_dir, 'data')
+        file_path = os.path.join(data_dir, filename)
 
-        Returns:
-            bool: True if the write operation was successful, False otherwise.
-        """
+        records = []
+
         try:
-            with open(os.path.join(self.data_directory, filename), 'w') as file:
-                json.dump(data, file, indent=4)
-            return True
-        except Exception as e:
-            print(f"Error writing to {filename}: {str(e)}")
-            return False
-
-    def read_from_file(self, filename):
-        """
-        Read data from a JSON file.
-
-        Args:
-            filename (str): The name of the JSON file to read.
-
-        Returns:
-            dict: The data read from the file as a dictionary, or an empty dictionary if the file does not exist.
-        """
-        try:
-            with open(os.path.join(self.data_directory, filename), 'r') as file:
-                data = json.load(file)
-            return data
+            with open(file_path, 'r') as file:
+                for line in file:
+                    record = json.loads(line)
+                    records.append(record)
         except FileNotFoundError:
-            return {}
-        except Exception as e:
-            print(f"Error reading from {filename}: {str(e)}")
-            return {}
+            pass
+        return records

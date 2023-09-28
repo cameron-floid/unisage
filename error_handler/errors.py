@@ -1,5 +1,5 @@
 class RecordNotFound(Exception):
-    raise Exception("Record Not Found")
+    raise Exception("Record Not Found.")
 
 
 class WrongPassword(Exception):

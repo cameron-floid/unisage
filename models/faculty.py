@@ -1,20 +1,8 @@
-from datetime import datetime
 from models.user import User
 
 
 class Faculty(User):
-    def __init__(
-            self,
-            name: str,
-            email: str,
-            dob: datetime,
-            position: str,
-            department_id: str,
-            hire_date: datetime,
-    ):
-
-        super().__init__(name=name, email=email, dob=dob)
-
-        self.position = position
-        self.hire_date = hire_date
-        self.department_id = department_id
+    def __init__(self, name, email, password, faculty_id, department, uid, salt):
+        super().__init__(name, email, password, uid, salt)
+        self.faculty_id = faculty_id
+        self.department = department
