@@ -7,9 +7,10 @@ class CMDUI:
 
     def run(self):
         while True and self.uni.current_user is None:
+            print()
             print("1. Sign In")
-            print("2. Sign Up")
             print("3. Quit")
+            print()
             choice = input("Enter your choice: ")
 
             if choice == '1':
@@ -21,23 +22,13 @@ class CMDUI:
                     self.handle_authenticated_user()
                 else:
                     print("Authentication failed. Please try again.")
-            elif choice == '2':
-                name = input("Enter your name: ")
-                email = input("Enter your email: ")
-                password = input("Enter your password: ")
-
-                if self.uni.signup(name, email, password):
-                    print("Account created successfully. Please sign in.")
-                else:
-                    print("An account with this email already exists.")
-            elif choice == '3':
-                break
 
         if self.uni.current_user is not None:
             self.handle_authenticated_user()
 
     def handle_authenticated_user(self):
         while True:
+            print()
             print("1. Create Student")
             print("2. Create Professor")
             print("3. Create Course")
@@ -54,6 +45,7 @@ class CMDUI:
                 program = input("Enter student's program: ")
                 self.uni.create_student(name, email, password, student_id, program)
                 print("Student created.")
+
             elif choice == '2':
                 name = input("Enter professor's name: ")
                 email = input("Enter professor's email: ")
@@ -62,10 +54,12 @@ class CMDUI:
                 department = input("Enter professor's department: ")
                 self.uni.create_professor(name, email, password, employee_id, department)
                 print("Professor created.")
+
             elif choice == '3':
                 name = input("Enter course name: ")
                 self.uni.create_course(name)
                 print("Course created.")
+
             elif choice == '4':
                 course_id = input("Enter course ID: ")
                 student_id = input("Enter student ID: ")

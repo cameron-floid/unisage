@@ -1,10 +1,13 @@
 class RecordNotFound(Exception):
-    raise Exception("Record Not Found.")
+    def __init__(self, message="Record Not Found."):
+        raise Exception(message)
 
 
 class WrongPassword(Exception):
-    raise Exception("Wrong password provided.")
+    def __init__(self, message="Wrong password provided."):
+        raise Exception(message)
 
 
 class AuthenticationError(Exception):
-    raise Exception("Incorrect Username or Password.")
+    def __init__(self, message="Incorrect Username or Password."):
+        raise Exception(message)

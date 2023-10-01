@@ -1,19 +1,14 @@
-import uuid
 from models.model import MODEL
 
 
 class Role(MODEL):
 
-    def __init__(self, role: str, auth_level: int, privileges: list):
+    def __init__(self, name, privileges=None):
         super().__init__()
-        self.uid = uuid.uuid4()
-        self.role = role
-        self.auth_level = auth_level
+        self.name = name
         self.privileges = privileges
 
-    def get_role_data(self, role):
-        role_data = super().get(uid=role)
-        return role_data
-
-    def save_role(self):
-        return super().save()
+    @classmethod
+    def exists(cls, name):
+        roles = cls.get_all()
+        return any(role['name'] == name for role in roles)
