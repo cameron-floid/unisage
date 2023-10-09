@@ -56,5 +56,10 @@ class User(MODEL):
         return super().get_all(record_dir=record_dir)
     
     @classmethod
-    def create(cls, records_dir, **kwargs):
+    def create(cls, records_dir=None, **kwargs):
         super().create(records_dir=records_dir, **kwargs)
+
+    @classmethod
+    def exists(cls, email):
+        users = cls.get_all()
+        return any(user['email'] == email for user in users)

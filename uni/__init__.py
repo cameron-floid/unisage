@@ -1,5 +1,4 @@
 import os
-
 from models.role import Role
 from models.uad import UAD
 from models import HostelManager
@@ -13,14 +12,6 @@ class Uni:
     def __init__(self):
         self.current_user = None
         self.ensure_uad_exists()
-
-    @staticmethod
-    def _user_exists(email):
-        users = User.get_all()
-        for user in users:
-            if user['email'] == email:
-                return True
-        return False
 
     # create UAD Role
     @staticmethod
@@ -41,21 +32,22 @@ class Uni:
         :return: UAD object if creation is successful, otherwise None
         """
 
+        uad_email = os.environ.get('UAD_EMAIL')
+
+        # Check if UAD already exists
+        if User.exists(uad_email):
+            print("User with the specified email already exists.")
+            return None
+
         self.create_uad_role()  # create UAD role if it doesn't exit
 
         uad_name = os.environ.get('UAD_NAME')
-        uad_email = os.environ.get('UAD_EMAIL')
         uad_password = os.environ.get('UAD_PASSWORD')
         uad_reset_code = os.environ.get('UAD_RESET_CODE')
         uad_department = os.environ.get('UAD_DEPARTMENT')
 
         if not uad_name or not uad_email or not uad_password or not uad_reset_code or not uad_department:
             print("Error: Missing required environment variables for UAD creation.")
-            return None
-
-        # Check if UAD already exists
-        if self._user_exists(uad_email):
-            print("Error: UAD with the specified email already exists.")
             return None
 
         # Create UAD
@@ -82,7 +74,7 @@ class Uni:
 
     def ensure_uad_exists(self):
         uad_email = os.environ.get('UAD_EMAIL')
-        if self._user_exists(uad_email):
+        if User.exists(uad_email):
             return
 
         if self.create_uad() is None:
@@ -93,9 +85,9 @@ class Uni:
         users = User.get_all()
         for user in users:
             if user['email'] == email and User.verify_password(
-                password=password,
-                salt=user["salt"],
-                password_hash=user["password_hash"]
+                    password=password,
+                    salt=user["salt"],
+                    password_hash=user["password_hash"]
             ):
                 self.current_user = User(
                     name=user["name"],
@@ -108,12 +100,24 @@ class Uni:
                 return True
         return False
 
-    def create_student(self, name, email, password, student_id, program):
-        if self.current_user and isinstance(self.current_user, Professor):
-            student = Student.create(name=name, email=email, password=password, student_id=student_id, program=program)
+    def create_student(self, name, email, password, program) -> bool:
+
+        # TODO: replace UAD check with Role.permissions check
+        if self.current_user and self.current_user.role["name"] == "UAD":
+
+            # check if the given student course exists
+            if Student.exists(email):
+                print(f"User with the given student email already exists.")
+                return False
+
+            student = Student.create(name=name, email=email, password=password, program=program)
             student.save()
             return True
-        return False
+
+        else:
+            print("Insufficient permissions to create enroll student.")
+            print(type(self.current_user))
+            return False
 
     def create_professor(self, name, email, password, employee_id, department):
         if self.current_user and isinstance(self.current_user, HostelManager):

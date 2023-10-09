@@ -11,3 +11,9 @@ class Course(MODEL):
     def enroll_student(self, student_id):
         self.students.append(student_id)
         self.save()
+
+    @classmethod
+    def exists(cls, name):
+        courses = cls.get_all()
+        return any(course['name'] == name for course in courses)
+

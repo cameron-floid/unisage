@@ -38,13 +38,21 @@ class CMDUI:
             choice = input("Enter your choice: ")
 
             if choice == '1':
+
                 name = input("Enter student's name: ")
                 email = input("Enter student's email: ")
                 password = input("Enter student's password: ")
-                student_id = input("Enter student's ID: ")
                 program = input("Enter student's program: ")
-                self.uni.create_student(name, email, password, student_id, program)
-                print("Student created.")
+
+                if self.uni.create_student(
+                    name=name,
+                    email=email,
+                    password=password,
+                    program=program
+                ):
+                    print("Student created.")
+                else:
+                    print("Failed to create Student.")
 
             elif choice == '2':
                 name = input("Enter professor's name: ")
