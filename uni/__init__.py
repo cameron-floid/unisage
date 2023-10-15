@@ -11,22 +11,24 @@ from models.professor import Professor
 class Uni:
     def __init__(self):
         self.current_user = None
+        self.create_default_roles()
         self.ensure_uad_exists()
 
     # create UAD Role
     @staticmethod
-    def create_uad_role():
+    def create_default_roles():
 
-        # Check if the role already exists
-        if Role.exists("UAD"):
-            return
+        default_roles = os.environ.get('DEFAULT_ROLES').split(",")
 
-        # Create and save the UAD role
-        uad_role = Role(name="UAD", privileges=[])
-        uad_role.save()
+        for role in default_roles:
+            if Role.exists(role):
+                continue
+            r = Role(name=role, privileges=[])
+            r.save()
 
     # create UAD
-    def create_uad(self):
+    @staticmethod
+    def create_uad():
         """
         Create UAD - University Administrator using environment variables
         :return: UAD object if creation is successful, otherwise None
@@ -37,9 +39,7 @@ class Uni:
         # Check if UAD already exists
         if User.exists(uad_email):
             print("User with the specified email already exists.")
-            return None
-
-        self.create_uad_role()  # create UAD role if it doesn't exit
+            return False
 
         uad_name = os.environ.get('UAD_NAME')
         uad_password = os.environ.get('UAD_PASSWORD')
@@ -48,7 +48,7 @@ class Uni:
 
         if not uad_name or not uad_email or not uad_password or not uad_reset_code or not uad_department:
             print("Error: Missing required environment variables for UAD creation.")
-            return None
+            return False
 
         # Create UAD
         uad = UAD(
@@ -66,18 +66,18 @@ class Uni:
 
         if uad:
             print("UAD created successfully.")
-            return uad
+            return True
 
         else:
             print("Error: Failed to create UAD.")
-            return None
+            return False
 
     def ensure_uad_exists(self):
         uad_email = os.environ.get('UAD_EMAIL')
         if User.exists(uad_email):
             return
 
-        if self.create_uad() is None:
+        if not self.create_uad():
             raise Exception("Failed to create UAD")
 
     def authenticate(self, email, password):
@@ -95,12 +95,16 @@ class Uni:
                     password=password,
                     uid=user["uid"],
                     salt=user["salt"],
-                    role=user["role"]
+                    role=user["role"]["name"]
                 )
                 return True
         return False
 
-    def create_student(self, name, email, password, program) -> bool:
+    def sign_out(self):
+        self.current_user = None
+        print("Signed out successfully.")
+
+    def create_student(self, name, email, password, program, graduation_year) -> bool:
 
         # TODO: replace UAD check with Role.permissions check
         if self.current_user and self.current_user.role["name"] == "UAD":
@@ -110,7 +114,13 @@ class Uni:
                 print(f"User with the given student email already exists.")
                 return False
 
-            student = Student.create(name=name, email=email, password=password, program=program)
+            student = Student(
+                name=name,
+                email=email,
+                password=password,
+                program=program,
+                graduation_year=graduation_year
+            )
             student.save()
             return True
 
@@ -132,8 +142,8 @@ class Uni:
         return None
 
     def create_course(self, name):
-        if self.current_user and isinstance(self.current_user, Professor):
-            course = Course.create(name=name, professor_id=self.current_user.uid)
+        if self.current_user.role["name"] == "UAD":
+            course = Course.create(name=name, professor_uid=self.current_user.uid, records_dir=None)
             return course
         return None
 
@@ -145,5 +155,17 @@ class Uni:
         return False
 
     @staticmethod
+    def list_roles():
+        return Role.get_all()
+
+    @staticmethod
     def list_courses():
         return Course.get_all()
+
+    @staticmethod
+    def list_students():
+        return Student.get_all()
+
+    @staticmethod
+    def list_users():
+        return User.get_all()

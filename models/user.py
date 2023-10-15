@@ -7,7 +7,7 @@ from error_handler.errors import RecordNotFound
 
 
 class User(MODEL):
-    def __init__(self, name, email, password, role, uid=None, salt=None):
+    def __init__(self, name, email, password, role: str, uid=None, salt=None):
         super().__init__()
         self.uid = str(uuid.uuid4()) if uid is None else uid
         self.name = name
@@ -19,16 +19,11 @@ class User(MODEL):
         # get role
         roles = Role.get_all()
         for user_role in roles:
-            if user_role["name"] == role["name"]:
-                self.role = user_role
-
-        roles = Role.get_all()
-        for user_role in roles:
             if user_role["name"] == role:
                 self.role = user_role
 
         if self.role is None:
-            raise RecordNotFound("The Given Role Does Not Exist, Please Ask the University Administrator (UAD) to "
+            raise RecordNotFound(f"The Role {role} Does Not Exist, Please Ask the University Administrator (UAD) to "
                                  "create it.")
 
     @staticmethod
@@ -45,7 +40,7 @@ class User(MODEL):
         return User._hash_password(password, salt) == password_hash
 
     def save(self, record_dir="users.json"):
-        super().save(record_dir=record_dir)
+        super().save(records_dir=record_dir)
         
     @classmethod
     def get(cls, uid, records_dir="users.json"):
@@ -53,7 +48,7 @@ class User(MODEL):
     
     @classmethod
     def get_all(cls, record_dir="users.json"):
-        return super().get_all(record_dir=record_dir)
+        return super().get_all(records_dir=record_dir)
     
     @classmethod
     def create(cls, records_dir=None, **kwargs):

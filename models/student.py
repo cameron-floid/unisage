@@ -9,10 +9,9 @@ class Student(User):
             email,
             password,
             program,
-            uid,
-            salt,
-            start_date: str,
             graduation_year: str,
+            salt=None,
+            uid=None,
             classes=None
     ):
 
@@ -20,11 +19,17 @@ class Student(User):
             name=name,
             email=email,
             password=password,
+            role='STUDENT',
             uid=uid,
             salt=salt
         )
 
         self.classes = classes
         self.program = program
-        self.start_date = start_date
+        self.start_date = datetime.now().isoformat()
         self.graduation_year = graduation_year
+
+    @classmethod
+    def get_all(cls, record_dir="users.json"):
+        return [student for student in super().get_all() if student["role"]["name"] == "STUDENT"]
+

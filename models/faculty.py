@@ -1,5 +1,4 @@
 from models.user import User
-from datetime import datetime
 
 
 class Faculty(User):

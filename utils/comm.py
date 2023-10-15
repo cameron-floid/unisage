@@ -21,3 +21,6 @@ class Comm:
     @staticmethod
     def from_dict(data: dict):
         return Comm(success=data["success"], message=data["message"], error=data["error"])
+
+    def display(self):
+        print(self.__dict__)
